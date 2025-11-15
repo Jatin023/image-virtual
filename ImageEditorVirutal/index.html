@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemoryEdit - Image Editor with Virtual Memory Simulation</title>
+
+  <!-- ✅ Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-text">MemoryEdit</span>
+      </div>
+      <div class="header-controls">
+        <button id="upload-btn" class="btn primary">
+          <i class="fa-solid fa-upload"></i> Upload Image
+        </button>
+        <input
+          type="file"
+          id="image-upload"
+          accept="image/jpeg, image/png"
+          hidden
+        />
+        <button id="save-btn" class="btn secondary" disabled>
+          <i class="fa-solid fa-floppy-disk"></i> Save
+        </button>
+        <button id="theme-toggle" class="btn icon-btn" aria-label="Toggle theme">
+          <i class="fa-solid fa-sun"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== MAIN SECTION ===== -->
+    <main class="main-content">
+      <div class="editor-container">
+        <div class="canvas-container">
+          <canvas id="preview-canvas"></canvas>
+          <div id="loading-indicator" class="hidden">Processing...</div>
+        </div>
+
+        <!-- ===== TOOL PANEL ===== -->
+        <div class="tools-panel">
+          <!-- Adjustments -->
+          <div class="tools-section">
+            <h3>Adjustments</h3>
+            <div class="tool-control">
+              <label for="brightness">Brightness</label>
+              <input
+                type="range"
+                id="brightness"
+                min="-100"
+                max="100"
+                value="0"
+                class="slider"
+              />
+              <span class="slider-value">0</span>
+            </div>
+            <div class="tool-control">
+              <label for="contrast">Contrast</label>
+              <input
+                type="range"
+                id="contrast"
+                min="-100"
+                max="100"
+                value="0"
+                class="slider"
+              />
+              <span class="slider-value">0</span>
+            </div>
+          </div>
+
+          <!-- Tools -->
+          <div class="tools-section">
+            <h3>Tools</h3>
+            <div class="tool-buttons">
+              <button id="rotate-left" class="btn tool-btn" disabled>
+                <i class="fa-solid fa-rotate-left"></i> Rotate Left
+              </button>
+              <button id="rotate-right" class="btn tool-btn" disabled>
+                <i class="fa-solid fa-rotate-right"></i> Rotate Right
+              </button>
+              <button id="crop" class="btn tool-btn" disabled>
+                <i class="fa-solid fa-crop"></i> Crop
+              </button>
+              <button id="resize" class="btn tool-btn" disabled>
+                <i class="fa-solid fa-expand"></i> Resize
+              </button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="tools-section">
+            <h3>Filters</h3>
+            <div class="filter-buttons">
+              <button id="filter-none" class="btn filter-btn active" disabled>
+                <i class="fa-solid fa-ban"></i> None
+              </button>
+              <button id="filter-grayscale" class="btn filter-btn" disabled>
+                <i class="fa-solid fa-palette"></i> Grayscale
+              </button>
+              <button id="filter-sepia" class="btn filter-btn" disabled>
+                <i class="fa-solid fa-sun"></i> Sepia
+              </button>
+              <button id="filter-invert" class="btn filter-btn" disabled>
+                <i class="fa-solid fa-adjust"></i> Invert
+              </button>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="tools-section">
+            <h3>History</h3>
+            <div class="history-controls">
+              <button id="undo" class="btn icon-btn" disabled>
+                <i class="fa-solid fa-arrow-rotate-left"></i> Undo
+              </button>
+              <button id="redo" class="btn icon-btn" disabled>
+                <i class="fa-solid fa-arrow-rotate-right"></i> Redo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MEMORY SECTION ===== -->
+      <div class="memory-dashboard">
+        <h3>Virtual Memory Management</h3>
+        <div class="memory-stats">
+          <div class="stat-item">
+            <div class="stat-label">Memory Usage</div>
+            <div class="stat-value">
+              <span id="memory-usage">0</span> / 100 MB
+            </div>
+            <div class="progress-bar">
+              <div id="memory-usage-bar" class="progress" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <div class="stat-label">Active Pages</div>
+              <div class="stat-value" id="active-pages">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Inactive Pages</div>
+              <div class="stat-value" id="inactive-pages">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Page Hits</div>
+              <div class="stat-value" id="page-hits">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Page Faults</div>
+              <div class="stat-value" id="page-faults">0</div>
+            </div>
+          </div>
+        </div>
+        <div class="memory-visualization">
+          <h4>Memory Pages</h4>
+          <div id="page-grid" class="page-grid"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== MODAL SECTION ===== -->
+    <div id="modal-container" class="modal-container hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Title</h3>
+          <button id="modal-close" class="btn icon-btn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button id="modal-cancel" class="btn">Cancel</button>
+          <button id="modal-confirm" class="btn primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
